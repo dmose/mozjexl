@@ -37,6 +37,7 @@
   },
   "homepage": "https://github.com/mozilla/mozjexl",
   "devDependencies": {
+    "babili-webpack-plugin": "0.1.2",
     "chai": "^2.0.0",
     "chai-as-promised": "^4.2.0",
     "mocha": "^2.1.0",
