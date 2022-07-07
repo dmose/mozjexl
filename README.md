@@ -332,7 +332,6 @@ be passed to eliminate the "power of" operator.
 $ yarn install
 $ yarn test
 ```
-
 ### Precommit hook
 
 Mozjexl provides a config for
@@ -340,6 +339,14 @@ Mozjexl provides a config for
 it with Pip, and then run `therapist install` in this repo to set it
 up. It will automatically format your Javascript with Prettier, and
 run ESLint checks before committing your code.
+
+## Building a JSM for use in mozilla-central ###
+```shell
+$ yarn build
+```
+
+The result will be in `vendor/mozjexl.js`.  Though it is not named ".jsm", it will
+function as one.
 
 ## License
 Mozjexl is licensed under the MIT license. Please see `LICENSE.txt` for full
