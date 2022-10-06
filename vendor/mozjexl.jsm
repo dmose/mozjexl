@@ -300,10 +300,11 @@ var Evaluator = __webpack_require__(2),
  * xpath-like drilldown into native Javascript objects.
  * @constructor
  */
-function Jexl() {
+function Jexl(throwOnMissingProp) {
   this._customGrammar = null;
   this._lexer = null;
   this._transforms = {};
+  this._throwOnMissingProp = throwOnMissingProp || true;
 }
 
 /**
@@ -461,7 +462,12 @@ Jexl.prototype._eval = function(exp, context) {
   var self = this,
     grammar = this._getGrammar(),
     parser = new Parser(grammar),
-    evaluator = new Evaluator(grammar, this._transforms, context);
+    evaluator = new Evaluator(
+      grammar,
+      this._transforms,
+      context,
+      this._throwOnMissingProp
+    );
   return Promise.resolve().then(function() {
     parser.addTokens(self._getLexer().tokenize(exp));
     return evaluator.eval(parser.complete());
@@ -553,11 +559,18 @@ var handlers = __webpack_require__(3);
  *      to resolve the value of a relative identifier.
  * @constructor
  */
-var Evaluator = function(grammar, transforms, context, relativeContext) {
+var Evaluator = function(
+  grammar,
+  transforms,
+  context,
+  relativeContext,
+  throwOnMissingProp
+) {
   this._grammar = grammar;
   this._transforms = transforms || {};
   this._context = context || {};
   this._relContext = relativeContext || this._context;
+  this._throwOnMissingProp = throwOnMissingProp || false;
 };
 
 /**
@@ -763,16 +776,39 @@ exports.FilterExpression = function(ast) {
  * @private
  */
 exports.Identifier = function(ast) {
+  function contextHasProp(context, prop) {
+    return Object.prototype.hasOwnProperty.call(context, prop);
+  }
+
   if (ast.from) {
-    return this.eval(ast.from).then(function(context) {
+    return this.eval(ast.from).then(context => {
       if (Array.isArray(context)) context = context[0];
+
+      // XXX at some point, we should probably make an undefined context throw
+      // too.
       if (context === undefined) return undefined;
+
+      if (this._throwOnMissingProp && !contextHasProp(context, ast.value)) {
+        throw new Error(
+          `stemmed context does not have an identifier named ${ast.value}`
+        );
+      }
+
       return context[ast.value];
     });
   } else {
-    return ast.relative
-      ? this._relContext[ast.value]
-      : this._context[ast.value];
+    const contextToCheck = ast.relative ? this._relContext : this._context;
+
+    if (
+      this._throwOnMissingProp &&
+      !contextHasProp(contextToCheck, ast.value)
+    ) {
+      throw new Error(
+        `default context does not have an identifier named ${ast.value}`
+      );
+    }
+
+    return contextToCheck[ast.value];
   }
 };
 

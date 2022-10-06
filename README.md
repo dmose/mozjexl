@@ -282,10 +282,12 @@ resolve and use that value!
 
 ### API
 
-#### mozjexl.Jexl
+#### mozjexl.Jexl(throwOnMissingProp)
 A reference to the Jexl constructor. To maintain separate instances of Jexl
 with each maintaining its own set of transforms, simply re-instantiate with
-`new mozjexl.Jexl()`.
+`new mozjexl.Jexl()`.  If `throwOnMissingProp` is set to `true`, the evaluator
+will throw an exception if an expression attempts to access a property that does
+not exist, otherwise it will silently continue.
 
 #### mozjexl.addBinaryOp(_{string} operator_, _{number} precedence_, _{function} fn_)
 Adds a binary operator to the Jexl instance. A binary operator is one that
